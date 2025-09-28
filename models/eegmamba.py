@@ -9,7 +9,7 @@ from rotary_embedding_torch import RotaryEmbedding, apply_rotary_emb
 
 
 class EEGMamba(nn.Module):
-    def __init__(self, in_dim, out_dim, d_model, dim_feedforward, seq_len, n_layer, nhead):
+    def __init__(self, in_dim=200, out_dim=200, d_model=200, dim_feedforward=800, seq_len=30, n_layer=12, nhead=8):
         super().__init__()
         self.patch_embedding = PatchEmbedding(in_dim, out_dim, d_model, seq_len)
         config = MambaConfig()
