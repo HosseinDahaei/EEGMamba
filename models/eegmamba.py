@@ -5,7 +5,6 @@ from modules.config_mamba import MambaConfig
 from modules.mixer_seq_simple import MixerModel
 from torch.nn.modules import TransformerEncoderLayer, TransformerEncoder
 from einops import rearrange
-from rotary_embedding_torch import RotaryEmbedding, apply_rotary_emb
 
 
 class EEGMamba(nn.Module):
