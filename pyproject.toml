@@ -1,0 +1,53 @@
+[tool.poetry]
+name = "eegmamba"
+version = "0.1.0"
+description = "EEGMamba environment (CUDA 12.1, Python 3.10)"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+
+# --- Core Deep Learning Stack (CUDA 12.1) ---
+torch = { version = "2.5.1+cu121", source = "pytorch-cu121" }
+torchvision = { version = "0.20.1+cu121", source = "pytorch-cu121" }
+torchaudio = { version = "2.5.1+cu121", source = "pytorch-cu121" }
+
+# --- EEGMamba Core ---
+mamba-ssm = "2.2.6.post3"
+einops = "0.8.1"
+tqdm = "4.66.5"
+
+# --- Scientific stack (Python 3.10 pins) ---
+# NumPy 2.2.x for Py3.10; allow 2.3.x if you ever upgrade Python to 3.11+
+numpy = [
+  { version = "2.2.2", markers = "python_version < '3.11'" },
+  { version = "2.3.3", markers = "python_version >= '3.11'" }
+]
+
+# SciPy 1.14.x for Py3.10; allow newer on Py3.11+
+scipy = [
+  { version = "1.14.1", markers = "python_version < '3.11'" },
+  { version = "1.16.2", markers = "python_version >= '3.11'" }
+]
+
+# scikit-learn 1.6.x supports Py3.10
+scikit-learn = "1.6.1"
+
+# Pandas 2.3.x supports Py3.10
+pandas = "2.3.2"
+
+# --- Optional/Recommended ---
+matplotlib = "3.9.2"
+seaborn = "0.13.2"
+pyyaml = "6.0.2"
+# If you need EEG file readers later:
+# mne = "1.6.1"
+# pyEDFlib = "0.1.37"
+rotary-embedding-torch = ">=0.6,<0.8"
+
+[[tool.poetry.source]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+priority = "explicit"  # <- IMPORTANT: only deps that declare this source will use it
+
