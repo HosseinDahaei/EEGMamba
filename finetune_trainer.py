@@ -1,6 +1,7 @@
 import copy
 import os
 from timeit import default_timer as timer
+import glob
 
 import numpy as np
 import torch
@@ -8,6 +9,33 @@ from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss, MSELoss
 from tqdm import tqdm
 
 from finetune_evaluator import Evaluator
+
+
+def cleanup_old_checkpoints(model_dir, max_checkpoints=10):
+    """
+    Keep only the most recent checkpoints to save disk space.
+    
+    Args:
+        model_dir: Directory containing model checkpoints
+        max_checkpoints: Maximum number of checkpoints to keep (default: 10)
+    """
+    # Get all .pth files in the model directory
+    checkpoint_files = glob.glob(os.path.join(model_dir, "*.pth"))
+    
+    if len(checkpoint_files) <= max_checkpoints:
+        return  # No need to delete anything
+    
+    # Sort by modification time (oldest first)
+    checkpoint_files.sort(key=os.path.getmtime)
+    
+    # Delete oldest checkpoints
+    num_to_delete = len(checkpoint_files) - max_checkpoints
+    for checkpoint_path in checkpoint_files[:num_to_delete]:
+        try:
+            os.remove(checkpoint_path)
+            print(f"🗑️  Deleted old checkpoint: {os.path.basename(checkpoint_path)}")
+        except Exception as e:
+            print(f"⚠️  Could not delete {checkpoint_path}: {e}")
 
 
 class Trainer(object):
@@ -136,11 +164,17 @@ class Trainer(object):
                 )
             )
             print(cm)
+            
             if not os.path.isdir(self.params.model_dir):
                 os.makedirs(self.params.model_dir)
+
             model_path = self.params.model_dir + "/epoch{}_acc_{:.5f}_kappa_{:.5f}_f1_{:.5f}.pth".format(best_f1_epoch, acc, kappa, f1)
             torch.save(self.model.state_dict(), model_path)
             print("model save in " + model_path)
+            
+            # Clean up old checkpoints to save disk space
+            cleanup_old_checkpoints(self.params.model_dir, max_checkpoints=10)
+
 
     def train_for_binaryclass(self):
         acc_best = 0
@@ -214,6 +248,9 @@ class Trainer(object):
             model_path = self.params.model_dir + "/epoch{}_acc_{:.5f}_pr_{:.5f}_roc_{:.5f}.pth".format(best_f1_epoch, acc, pr_auc, roc_auc)
             torch.save(self.model.state_dict(), model_path)
             print("model save in " + model_path)
+            
+            # Clean up old checkpoints to save disk space
+            cleanup_old_checkpoints(self.params.model_dir, max_checkpoints=10)
 
     def train_for_regression(self):
         corrcoef_best = 0
@@ -284,3 +321,6 @@ class Trainer(object):
             model_path = self.params.model_dir + "/epoch{}_corrcoef_{:.5f}_r2_{:.5f}_rmse_{:.5f}.pth".format(best_r2_epoch, corrcoef, r2, rmse)
             torch.save(self.model.state_dict(), model_path)
             print("model save in " + model_path)
+            
+            # Clean up old checkpoints to save disk space
+            cleanup_old_checkpoints(self.params.model_dir, max_checkpoints=10)
