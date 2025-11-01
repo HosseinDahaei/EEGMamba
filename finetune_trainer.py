@@ -137,7 +137,7 @@ class Trainer(object):
                         (timer() - start_time) / 60
                     )
                 )
-                print(cm)
+                # print(cm)
                 if kappa > kappa_best:
                     print("kappa increasing....saving weights !! ")
                     print("Val Evaluation: acc: {:.5f}, kappa: {:.5f}, f1: {:.5f}".format(

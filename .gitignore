@@ -1,3 +1,5 @@
 .idea
 pretrained_weights/pretrained_weights.pth
 *.cpython-*
+data/
+results/

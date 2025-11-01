@@ -80,7 +80,7 @@ def main():
             data_loader = load_dataset.get_data_loader()
             model = model_for_physio.Model(params)
             t = Trainer(params, data_loader, model)
-            t.train_for_multiclass()  # Save after every fold
+            t.train_for_multiclass()
     elif params.downstream_dataset == 'SHU-MI':
         load_dataset = shu_dataset.LoadDataset(params)
         data_loader = load_dataset.get_data_loader()

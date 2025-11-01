@@ -1,0 +1,6 @@
+name: eegmamba3
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+prefix: /opt/conda/envs/eegmamba3

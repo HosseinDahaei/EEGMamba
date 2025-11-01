@@ -51,3 +51,4 @@ mock_eeg = torch.randn((8, 22, 4, 200)).to(device)
 logits = classifier(model(mock_eeg))
 print("Logits shape:", logits.shape)
 
+
