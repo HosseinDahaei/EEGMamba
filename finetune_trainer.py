@@ -2,6 +2,8 @@ import copy
 import os
 from timeit import default_timer as timer
 import glob
+import json
+from datetime import datetime
 
 import numpy as np
 import torch
@@ -55,6 +57,27 @@ class Trainer(object):
             self.criterion = MSELoss().cuda()
 
         self.best_model_states = None
+        
+        # Initialize training history for logging
+        self.training_history = {
+            'train_loss': [],
+            'val_acc': [],
+            'val_kappa': [],
+            'val_f1': [],
+            'val_pr_auc': [],
+            'val_roc_auc': [],
+            'val_corrcoef': [],
+            'val_r2': [],
+            'val_rmse': [],
+            'learning_rate': [],
+            'epoch_time': [],
+            'test_results': {}
+        }
+        
+        # Create log file path
+        self.log_file = os.path.join(self.params.model_dir, 'training_log.json')
+        if not os.path.isdir(self.params.model_dir):
+            os.makedirs(self.params.model_dir)
 
         backbone_params = []
         other_params = []
@@ -94,6 +117,15 @@ class Trainer(object):
         )
         print(self.model)
 
+    def save_training_log(self):
+        """Save training history to JSON file"""
+        try:
+            with open(self.log_file, 'w') as f:
+                json.dump(self.training_history, f, indent=2)
+            print(f"📊 Training log saved to: {self.log_file}")
+        except Exception as e:
+            print(f"⚠️ Warning: Could not save training log: {e}")
+
     def train_for_multiclass(self):
         f1_best = 0
         kappa_best = 0
@@ -126,6 +158,15 @@ class Trainer(object):
 
             with torch.no_grad():
                 acc, kappa, f1, cm = self.val_eval.get_metrics_for_multiclass(self.model)
+                
+                # Log metrics
+                self.training_history['train_loss'].append(float(np.mean(losses)))
+                self.training_history['val_acc'].append(float(acc))
+                self.training_history['val_kappa'].append(float(kappa))
+                self.training_history['val_f1'].append(float(f1))
+                self.training_history['learning_rate'].append(float(optim_state['param_groups'][0]['lr']))
+                self.training_history['epoch_time'].append(float((timer() - start_time) / 60))
+                
                 print(
                     "Epoch {} : Training Loss: {:.5f}, acc: {:.5f}, kappa: {:.5f}, f1: {:.5f}, LR: {:.5f}, Time elapsed {:.2f} mins".format(
                         epoch + 1,
@@ -162,6 +203,19 @@ class Trainer(object):
         with torch.no_grad():
             print("***************************Test************************")
             acc, kappa, f1, cm = self.test_eval.get_metrics_for_multiclass(self.model)
+            
+            # Log test results
+            self.training_history['test_results'] = {
+                'acc': float(acc),
+                'kappa': float(kappa),
+                'f1': float(f1),
+                'confusion_matrix': cm.tolist() if hasattr(cm, 'tolist') else cm,
+                'best_epoch': int(best_f1_epoch)
+            }
+            
+            # Save training log
+            self.save_training_log()
+            
             print("***************************Test results************************")
             print(
                 "Test Evaluation: acc: {:.5f}, kappa: {:.5f}, f1: {:.5f}".format(
@@ -213,6 +267,15 @@ class Trainer(object):
 
             with torch.no_grad():
                 acc, pr_auc, roc_auc, cm = self.val_eval.get_metrics_for_binaryclass(self.model)
+                
+                # Log metrics
+                self.training_history['train_loss'].append(float(np.mean(losses)))
+                self.training_history['val_acc'].append(float(acc))
+                self.training_history['val_pr_auc'].append(float(pr_auc))
+                self.training_history['val_roc_auc'].append(float(roc_auc))
+                self.training_history['learning_rate'].append(float(optim_state['param_groups'][0]['lr']))
+                self.training_history['epoch_time'].append(float((timer() - start_time) / 60))
+                
                 print(
                     "Epoch {} : Training Loss: {:.5f}, acc: {:.5f}, pr_auc: {:.5f}, roc_auc: {:.5f}, LR: {:.5f}, Time elapsed {:.2f} mins".format(
                         epoch + 1,
@@ -249,6 +312,19 @@ class Trainer(object):
         with torch.no_grad():
             print("***************************Test************************")
             acc, pr_auc, roc_auc, cm = self.test_eval.get_metrics_for_binaryclass(self.model)
+            
+            # Log test results
+            self.training_history['test_results'] = {
+                'acc': float(acc),
+                'pr_auc': float(pr_auc),
+                'roc_auc': float(roc_auc),
+                'confusion_matrix': cm.tolist() if hasattr(cm, 'tolist') else cm,
+                'best_epoch': int(best_f1_epoch)
+            }
+            
+            # Save training log
+            self.save_training_log()
+            
             print("***************************Test results************************")
             print(
                 "Test Evaluation: acc: {:.5f}, pr_auc: {:.5f}, roc_auc: {:.5f}".format(
@@ -295,6 +371,15 @@ class Trainer(object):
 
             with torch.no_grad():
                 corrcoef, r2, rmse = self.val_eval.get_metrics_for_regression(self.model)
+                
+                # Log metrics
+                self.training_history['train_loss'].append(float(np.mean(losses)))
+                self.training_history['val_corrcoef'].append(float(corrcoef))
+                self.training_history['val_r2'].append(float(r2))
+                self.training_history['val_rmse'].append(float(rmse))
+                self.training_history['learning_rate'].append(float(optim_state['param_groups'][0]['lr']))
+                self.training_history['epoch_time'].append(float((timer() - start_time) / 60))
+                
                 print(
                     "Epoch {} : Training Loss: {:.5f}, corrcoef: {:.5f}, r2: {:.5f}, rmse: {:.5f}, LR: {:.5f}, Time elapsed {:.2f} mins".format(
                         epoch + 1,
@@ -329,6 +414,18 @@ class Trainer(object):
         with torch.no_grad():
             print("***************************Test************************")
             corrcoef, r2, rmse = self.test_eval.get_metrics_for_regression(self.model)
+            
+            # Log test results
+            self.training_history['test_results'] = {
+                'corrcoef': float(corrcoef),
+                'r2': float(r2),
+                'rmse': float(rmse),
+                'best_epoch': int(best_r2_epoch)
+            }
+            
+            # Save training log
+            self.save_training_log()
+            
             print("***************************Test results************************")
             print(
                 "Test Evaluation: corrcoef: {:.5f}, r2: {:.5f}, rmse: {:.5f}".format(
