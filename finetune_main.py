@@ -74,13 +74,11 @@ def main():
         t = Trainer(params, data_loader, model)
         t.train_for_multiclass()
     elif params.downstream_dataset == 'PhysioNet-MI':
-        for i in range(1, 100):
-            print('The {}th fold'.format(i))
-            load_dataset = physio_dataset.LoadDataset(params)
-            data_loader = load_dataset.get_data_loader()
-            model = model_for_physio.Model(params)
-            t = Trainer(params, data_loader, model)
-            t.train_for_multiclass()
+        load_dataset = physio_dataset.LoadDataset(params)
+        data_loader = load_dataset.get_data_loader()
+        model = model_for_physio.Model(params)
+        t = Trainer(params, data_loader, model)
+        t.train_for_multiclass()
     elif params.downstream_dataset == 'SHU-MI':
         load_dataset = shu_dataset.LoadDataset(params)
         data_loader = load_dataset.get_data_loader()
@@ -124,13 +122,11 @@ def main():
         t = Trainer(params, data_loader, model)
         t.train_for_binaryclass()
     elif params.downstream_dataset == 'TUEV':
-        for i in range(100):
-            print('The {}th time training'.format(i))
-            load_dataset = tuev_dataset.LoadDataset(params)
-            data_loader = load_dataset.get_data_loader()
-            model = model_for_tuev.Model(params)
-            t = Trainer(params, data_loader, model)
-            t.train_for_multiclass()
+        load_dataset = tuev_dataset.LoadDataset(params)
+        data_loader = load_dataset.get_data_loader()
+        model = model_for_tuev.Model(params)
+        t = Trainer(params, data_loader, model)
+        t.train_for_multiclass()
     elif params.downstream_dataset == 'TUAB':
         load_dataset = tuab_dataset.LoadDataset(params)
         data_loader = load_dataset.get_data_loader()
