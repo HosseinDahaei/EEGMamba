@@ -30,7 +30,10 @@ class CustomDataset(Dataset):
         # print(key)
         # print(data)
         # print(label)
-        return data/100, label
+        # Data is already in microvolts (µV) from preprocessing
+        # Normalize to have zero mean and unit std for better training
+        data = (data - data.mean()) / (data.std() + 1e-8)
+        return data, label
 
     def collate(self, batch):
         x_data = np.array([x[0] for x in batch])
