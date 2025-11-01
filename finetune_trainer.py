@@ -99,6 +99,7 @@ class Trainer(object):
         kappa_best = 0
         acc_best = 0
         cm_best = None
+        best_f1_epoch = 0
         for epoch in range(self.params.epochs):
             self.model.train()
             start_time = timer()
@@ -109,7 +110,6 @@ class Trainer(object):
                 y = y.cuda()
                 pred = self.model(x)
                 if self.params.downstream_dataset == 'ISRUC':
-                    print(x)
                     loss = self.criterion(pred.transpose(1, 2), y)
                 else:
                     loss = self.criterion(pred, y)
@@ -151,6 +151,13 @@ class Trainer(object):
                     f1_best = f1
                     cm_best = cm
                     self.best_model_states = copy.deepcopy(self.model.state_dict())
+        
+        # Handle case where model never improved
+        if self.best_model_states is None:
+            print("⚠️ Warning: Model never improved on validation set. Using final epoch weights.")
+            self.best_model_states = self.model.state_dict()
+            best_f1_epoch = self.params.epochs
+        
         self.model.load_state_dict(self.best_model_states)
         with torch.no_grad():
             print("***************************Test************************")
@@ -181,6 +188,7 @@ class Trainer(object):
         roc_auc_best = 0
         pr_auc_best = 0
         cm_best = None
+        best_f1_epoch = 0
         for epoch in range(self.params.epochs):
             self.model.train()
             start_time = timer()
@@ -230,6 +238,13 @@ class Trainer(object):
                     roc_auc_best = roc_auc
                     cm_best = cm
                     self.best_model_states = copy.deepcopy(self.model.state_dict())
+        
+        # Handle case where model never improved
+        if self.best_model_states is None:
+            print("⚠️ Warning: Model never improved on validation set. Using final epoch weights.")
+            self.best_model_states = self.model.state_dict()
+            best_f1_epoch = self.params.epochs
+        
         self.model.load_state_dict(self.best_model_states)
         with torch.no_grad():
             print("***************************Test************************")
@@ -256,6 +271,7 @@ class Trainer(object):
         corrcoef_best = 0
         r2_best = 0
         rmse_best = 0
+        best_r2_epoch = 0
         for epoch in range(self.params.epochs):
             self.model.train()
             start_time = timer()
@@ -302,6 +318,12 @@ class Trainer(object):
                     r2_best = r2
                     rmse_best = rmse
                     self.best_model_states = copy.deepcopy(self.model.state_dict())
+
+        # Handle case where model never improved
+        if self.best_model_states is None:
+            print("⚠️ Warning: Model never improved on validation set. Using final epoch weights.")
+            self.best_model_states = self.model.state_dict()
+            best_r2_epoch = self.params.epochs
 
         self.model.load_state_dict(self.best_model_states)
         with torch.no_grad():

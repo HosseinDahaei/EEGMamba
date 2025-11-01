@@ -58,18 +58,24 @@ class LoadDataset(object):
                 batch_size=self.params.batch_size,
                 collate_fn=train_set.collate,
                 shuffle=True,
+                num_workers=getattr(self.params, 'num_workers', 0),
+                pin_memory=True if torch.cuda.is_available() else False,
             ),
             'val': DataLoader(
                 val_set,
                 batch_size=self.params.batch_size,
                 collate_fn=val_set.collate,
                 shuffle=False,
+                num_workers=getattr(self.params, 'num_workers', 0),
+                pin_memory=True if torch.cuda.is_available() else False,
             ),
             'test': DataLoader(
                 test_set,
                 batch_size=self.params.batch_size,
                 collate_fn=test_set.collate,
                 shuffle=False,
+                num_workers=getattr(self.params, 'num_workers', 0),
+                pin_memory=True if torch.cuda.is_available() else False,
             ),
         }
         return data_loader
