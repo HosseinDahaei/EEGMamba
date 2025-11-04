@@ -15,7 +15,7 @@ class Model(nn.Module):
         )
         if param.use_pretrained_weights:
             map_location = torch.device(f'cuda:{param.cuda}')
-            self.backbone.load_state_dict(torch.load(param.foundation_dir, map_location=map_location))
+            self.backbone.load_state_dict(torch.load(param.foundation_dir, map_location=map_location, weights_only=False))
         self.backbone.proj_out = nn.Identity()
         if param.classifier == 'avgpooling_patch_reps':
             self.classifier = nn.Sequential(
